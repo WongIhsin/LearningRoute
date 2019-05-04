@@ -28,7 +28,7 @@ Socket包含了进行网络通信所必须的五种信息：链接所使用的�
 
    `curl -I https://www.baidu.com`
 
-   ![Screenshot from 2019-05-03 16-43-44](/home/wyx/Desktop/Screenshot from 2019-05-03 16-43-44.png)
+   ![Screenshot from 2019-05-03 16-43-44](/home/wyx/Learning/LearningRoute/Basic/img/Screenshot from 2019-05-03 16-43-44.png)
 
    `curl -i https://www.baidu.com`
 
@@ -74,7 +74,7 @@ Socket包含了进行网络通信所必须的五种信息：链接所使用的�
 
    执行后显示如下，100%表示保存成功
 
-   ![Screenshot from 2019-05-03 15-38-18](/home/wyx/Desktop/Screenshot from 2019-05-03 15-38-18.png)
+   ![Screenshot from 2019-05-03 15-38-18](/home/wyx/Learning/LearningRoute/Basic/img/Screenshot from 2019-05-03 15-38-18.png)
 
 7. 可以使用curl内置的 option -O 来保存网页中的文件，但是必须具体到某个文件，不然抓不下来
 
@@ -84,7 +84,7 @@ Socket包含了进行网络通信所必须的五种信息：链接所使用的�
 
    `curl -o /dev/null -s -w %{http_code} www.baidu.com`
 
-   ![Screenshot from 2019-05-03 15-54-22](/home/wyx/Desktop/Screenshot from 2019-05-03 15-54-22.png)
+   ![Screenshot from 2019-05-03 15-54-22](/home/wyx/Learning/LearningRoute/Basic/img/Screenshot from 2019-05-03 15-54-22.png)
 
    在脚本中，这是很常见的测试网站是否正常的用法
 
@@ -280,4 +280,6 @@ Socket包含了进行网络通信所必须的五种信息：链接所使用的�
 
    牵扯出IPv6的问题，可以继续研究研究
 
+   暂时先不研究了
+   
    
