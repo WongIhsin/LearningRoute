@@ -7,19 +7,21 @@
 1. HTTP：Hyper Text Transfer Protocol 超文本传输协议
 2. 用于从万维网 WWW：World Wide Web 服务器传输超文本到本地浏览器的传送协议
    		**互联网包含因特网，因特网包含万维网**
-   		**只要应用层使用了HTTP协议，就可以称为万维网**
+      		**只要应用层使用了HTTP协议，就可以称为万维网**
 3. HTTP 应用层协议，面向对象的协议，适用于分布式超媒体信息系统
 4. 基于TCP/IP通信协议来传递数据
 
 #### 特点
 
 1. 无连接
-
-   每次连接只处理一个请求，服务器处理完客户的请求，并收到客户的应答后，即断开连接，节省传输时间
-
+每次连接只处理一个请求，服务器处理完客户的请求，并收到客户的应答后，即断开连接，节省传输时间
+   
 2. 无状态
+对于事物处理没有记忆能力，如果后续处理需要前面的信息，必须重传
 
-   对于事物处理没有记忆能力，如果后续处理需要前面的信息，必须重传
+***无状态无连接不代表HTTP不能保持TCP连接，更不能代表HTTP使用的是UDP协议***
+
+***Keep-Alive不会永久保持连接，它有一个保持时间，可以在不同的服务器软件中设定这个时间***
 
 #### URL
 
@@ -204,20 +206,159 @@ TRACE：回显服务器收到的请求，主要用于测试或诊断
 请求头：
 host：请求web服务器的域名地址
 Connection：表示是否持久连接，keep-alive表示持久连接
-Cache-Control：指定请求和响应的缓存机制。
-no-cache不能缓存
-no-store在请求消息中发送将使得请求和响应消息都不适用缓存
+**Cache-Control**：指定请求和响应的缓存机制。
+		no-cache不能缓存
+		no-store在请求消息中发送将使得请求和响应消息都不适用缓存
 max-age：客户机可以接受生存期不大于指定时间(秒)的响应
 max-stale：客户机可以接受超出超时期间的响应消息
 min-fresh：客户机可以接受响应时间小于当前时间加上指定时间的响应
 only-if-cached等
-User-Agent：HTTP协议运行的浏览器类型的详细信息
-Accept：指浏览器可以接受的内容类型
-Accept-Encoding：客户端浏览器可以支持的web服务器返回内容压缩编码类型
-Accept-Language：浏览器支持的语言类型
-Cookie：某些网站为了辨别用户身份、进行Session跟踪而存储在用户本地终端上的数据(通常经过加密)
+**User-Agent**：HTTP协议运行的浏览器类型的详细信息
+**Accept**：指浏览器可以接受的内容类型
+**Accept-Encoding**：客户端浏览器可以支持的web服务器返回内容压缩编码类型
+**Accept-Language**：浏览器支持的语言类型
+**Cookie**：某些网站为了辨别用户身份、进行Session跟踪而存储在用户本地终端上的数据(通常经过加密)
+
+header里面分为**Cache头域**、**Client头域**、**Cookie/Login头域**、**Entity头域**、**Miscellaneous头域**、**Transport头域**
+
+**Cookie/Login头域**、**Entity头域**、**Miscellaneous头域**、**Transport头域**
+
+1. Cookie
+   最重要的header，将cookie的值发送给HTTP服务器
+2. Content-Length
+   发送给服务器的数据的长度
+   Content-Length: 38
+3. Content-Type
+4. Referer
+   提供了Request的上下文信息的服务器，告诉服务器这个从哪个链接来的，比如统计访问量等
+5. Connection
+   Connection: keep-alive 当一个网页打开完成后，客户端和服务器之间用于传输HTTP数据的TCP连接不会关闭，如果客户端再次访问这个服务器上的页面，会继续使用这一条已经建立的连接
+   Connection: close 一个Request完成之后，客户端和服务器之间用于传输HTTP数据的TCP连接会关闭，再次发送Request时，需要重新建立TCP连接
+6. Host
+   **发送请求时，该报头域是必须的**
+   主要用于指定被请求资源的Internet主机和端口号，通常从HTTP URL中提取出来
+   例如请求https://www.xx.com/index.html，浏览器发送的请求中，会包含Host请求报头域，Host: https://www.xx.com
+
+**Client头域**
+
+1. Accept
+   指定浏览器端可以接受的媒体类型，Accept: text/html 代表浏览器可以接受服务器回发的类型为text/html，也就是html文档；如果服务器无法返回text/html类型的数据，服务器会返回406错误non acceptable
+   Accept: \*/\* 表示浏览器可以处理所有类型，一般浏览器都是发送给服务器这个
+2. Accept-Encoding
+   浏览器声明自己可以接收的编码方式，通常指定压缩方法，是否支持压缩以及什么压缩方法（不只是字符编码）
+   Accept-Encoding: gzip, deflate
+3. Accept-Language
+   浏览器声明自己可以接收的语言
+   Accept-Language: en-us
+4. User-Agent
+   告诉服务器客户端使用的操作系统和浏览器的名称和版本
+   User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; CIBA; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET4.0C; InfoPath.2; .NET4.0E)
+5. Accept-Charset
+   浏览器声明自己接收的字符集
+
+**Cache头域**
+
+1. If-Modified-Since
+   浏览器端缓存页面的最后修改时间发送到服务器去，服务器会把这个时间与服务器上实际文件的最后修改时间进行比对，如果时间一致，那么返回304，客户端就直接使用本地缓存文件；不一致则会返回200和新的文件内容，客户端接到之后，会丢弃旧文件，把新文件缓存起来，并显示在浏览器中
+2. If-None-Match
+   和ETag一起工作，在HTTP Response中添加ETag信息，当用户再次请求资源时，将在Request中加入If-None-Match信息，即ETag的值，如果服务器验证资源的ETag没有改变，将返回一个304状态告诉客户端使用本地缓存文件；否则返回200和新的资源和ETag，使用这样的机制将提高网站的性能
+3. Pragme
+   防止页面被缓存，在HTTP/1.1中，它和Cache-Control: no-cache作用一样
+   唯一用法：Pragme: no-cache
+4. **Cache-Control**
+   **非常重要的规则，**指定Response-Request遵循的缓存机制
+   Cache-Control: Public 可以被任何缓存所缓存
+   Cache-Control: Private 内容只缓存到私有缓存中
+   Cache-Control: no-cache 所有内容都不会被缓存
+
+#### Response响应头内容
+
+header里面分为**Cache头域**、**Cookie/Login头域**、**Entity头域**、**Miscellaneous头域**、**Transport头域**、**Location头域**
+
+**Cache头域**
+
+1. Date
+   生成消息的具体时间和日期
+   Date: Sat, 11 Feb 2019 14:15:30 GMT
+2. Expires
+   浏览器会在指定过期时间内使用本地缓存
+   Expires: Tue, 08 Feb 2029 14:15:30 GMT
+3. Vary: Accept-Encoding
+
+**Cookie/Login头域**
+
+1. **P3P**
+   用于跨域设置Cookie，这样可以解决iframe跨域访问cookie的问题
+   P3P: CP=CURa ADMa DEVa PSAo....
+2. **Set-Cookie**
+   非常重要的header，用于把cookie发送到客户端浏览器，每一个写入cookie都会生成一个Set-Cookie
+   Set-Cookie: sc=4c31523a; path=/; domain=.acookie.taobao.com
+   Set-Cookie: cookie17=W874i9mqGK4%3D;...
+   ...
+
+**Entity头域**
+
+1. ETag
+   和If-None-Match配合使用
+   ETag: "03f2b33c0bfcc1:0"
+2. Last-Modified
+   用于指示资源的最后修改日期和时间，对应Request的If-Modified-Since
+   Last-Modified: Wed, 21 Dec 2019 09:09:10 GMT
+3. Content-Type
+   Web服务器告诉浏览器自己响应的对象类型和字符集
+   Content-Type: text/html; charset=utf-8
+   Content-Type: text/html; charset=GB2312
+4. Content-Length
+   指明实体正文的长度，以字节方式存储的十进制数字来表示
+   Content-Length的方式要预先在服务器中缓存所有数据，然后所有数据再一起发给客户端
+   Conten-Length: 19847
+5. Content-Encoding/Content-Language
+   表明自己使用了什么压缩方法gzip，deflate压缩响应中的对象/响应对象的语言
+   Content-Encoding: gzip
+   Content-Language: da
+
+**Miscellaneous头域**、**Transport头域**、**Location头域**
+
+1. Server
+   指明HTTP服务器的软件信息
+   Server: Microsoft-IIS/7.5
+2. X-AspNet-Version
+   如果网站是用ASP.NET开发的，这个header表示ASP.NET的版本
+   X-AspNet-Version: 4.0.30319
+3. X-Powered-By
+   表示网站是用什么技术开发的
+   X-Powered-By: ASP.NET
+4. Connection
+   Connection: keep-alive 没有关闭TCP连接
+   Connection: close TCP连接会关闭
+5. Location
+   用于重定向一个新的位置，包含新的URL地址，304中
+
+
 
 #### HTTP代理
 
+一般来说，浏览器输入URL后，请求Request发送给Web服务器，Web服务器接到Request后进行处理，生成相应的Response，然后发送给浏览器，浏览器解析Response中的HTML，我们就看到了网页
 
+其中，我们的Request有可能是经过了代理服务器的，最后才到达Web服务器
 
+代理服务器优势：
+***提高访问速度，大多数的代理服务器都有缓存功能***
+***突破限制，科学上网***
+***隐藏身份***
+http代理服务器的匿名性是指：代理服务器通过删除HTTP报文中的身份特性（比如客户端的IP地址、cookie、URI的会话ID）从而对远端服务器隐藏原始用户的IP地址以及其他细节，同时HTTP代理服务器上也不会记录原始用户访问记录的log
+
+HTTP代理有两种：**普通代理**和**隧道代理Tunneling TCP**
+
+**普通代理**
+
+通过代理可以隐藏IP，代理也可以修改HTTP请求头，通过X-Forwarded-Ip这样的自定义头部告诉服务器真正的客户端IP，但服务器无法验证自定义头部真的是由代理添加，还是客户端修改了请求头
+给浏览器显式的指定代理，可以手动修改浏览器或操作系统相关设置，或指定PAC文件自动设置，还有浏览器支持WPAD。显式指定浏览器代理这种方式称为**正向代理**
+
+隐藏服务器IP就是**反向代理**，需要通过修改DNS让域名解析到代理服务器IP，反向代理是Web系统最为常见的一种部署方式
+
+**隧道代理**
+
+客户端通过HTTP的CONNECT方法请求隧道代理，创建一条到达任意目的服务器和端口的TCP连接，并对客户端和服务器之间的后继数据进行盲转发
+
+例如通过代理访问A网站，浏览器首先通过CONNECT请求，让代理创建一条到A网站的TCP连接，一旦连接创建好，代理无脑转发后继流量即可。
