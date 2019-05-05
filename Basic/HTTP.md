@@ -238,6 +238,7 @@ header里面分为**Cache头域**、**Client头域**、**Cookie/Login头域**、
    **发送请求时，该报头域是必须的**
    主要用于指定被请求资源的Internet主机和端口号，通常从HTTP URL中提取出来
    例如请求https://www.xx.com/index.html，浏览器发送的请求中，会包含Host请求报头域，Host: https://www.xx.com
+   **如果一台服务器有多个网站，服务器就需要通过Host来区分浏览器请求的是哪个网站**
 
 **Client头域**
 
