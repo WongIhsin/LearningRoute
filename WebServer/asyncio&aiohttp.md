@@ -109,324 +109,403 @@ asyncio提供一组**高层级API**用于
 2、使用transports实现高效率协议
 3、通过async/await语法桥接基于回调的库和代码
 
-#### 低层级应用
+---
 
-##### 事件循环
+#### asyncio基础概念
 
-事件循环是每个asyncio应用的核心，事件循环会运行异步任务和回调，执行网络IO操作，以及运行子进程
+**`event_loop()`事件循环**：
+程序开启一个无限的循环，程序员会把一些函数注册到事件循环上，当满足事件发生的时候，调用相应的协程函数
 
-应用开发者通常应当使用高层级的asyncio函数，例如`asyncio.run()`，他们应当很少有必要引用循环对象或调用其方法。
+**`coroutine`协程**：
+协程对象，指一个使用async关键字定义的函数，它的调用不会立即执行函数，而是会返回一个协程对象。协程对象需要注册到事件循环，由事件循环调用
 
-**获取事件循环**
-获取、设置、创建事件循环
+**`future`对象**：
+代表将来执行或没有执行的任务的结果，和Task么有本质的区别
 
-| API                        | 描述                                   |
-| -------------------------- | -------------------------------------- |
-| asyncio.get_running_loop() | 获取当前运行的事件循环的首选函数       |
-| asyncio.get_event_loop()   | 获得一个事件循环实例(当前或通过策略)   |
-| asyncio.set_event_loop()   | 通过当前策略将事件循环设置当前事件循环 |
-| asyncio.new_event_loop()   | 创建一个新的事件循环                   |
+**`task`任务**：
+一个协程对象就是一个原生可以挂起的函数，任务则是对协程进一步封装，其中包含任务的各种状态。Task对象是Future的子类，它将coroutine和Future联系在一起，将coroutine封装成一个Future对象
 
-`asyncio.get_running_loop()`返回当前OS线程中正在运行的事件循环
-如果没有正在运行的事件循环则会引发RuntimeError。此函数只能有协程或回调来调用
+**`async/await`关键字**：
+python3.5用于定义协程的关键字，async定义一个协程，await用于挂起阻塞的异步调用接口，其作用在一定程度上类似yield，即暂停效果
+但不能在生成器中使用await，也不能在async定义的协程中使用yield
 
-`asyncio.get_event_loop()`获取当前事件循环
-如果当前OS线程没有设置当前事件循环并且`set_event_loop()`还没有被调用，将创建一个新的事件循环并将其设置为当前循环
-猜测将等于`new_event_loop()`并`set_event_loop(loop)`
+---
 
-`asyncio.set_event_loop(loop)`将loop设置为当前OS线程的当前事件循环
+#### 协程完整的工作流程
 
-`asyncio.new_event_loop()`创建一个新的事件循环
-
-**运行和停止循环**
-`loop.run_until_complete(future)`运行直到future(Future的实例)被完成
-如果参数是`coroutine object`，将被隐式调度为`asyncio.Task`来运行
-返回Future的结果或者是引发相关异常
-
-`loop.run_forever()`运行事件循环直到`stop()`被调用
-
-`loop.stop()`停止事件循环
-
-`loop.is_running()`返回True如果事件循环当前正在运行
-
-`loop.is_closed()`如果事件循环已经被关闭，返回True
-
-`loop.close()`关闭事件循环
-调用时，循环必须处于非运行状态，pending状态的回调将被丢弃，此方法清除所有的队列并立即关闭执行器，不会等待执行器完成
-
-`loop.shutdown_asyncgens()`
-
-**调度回调**
-`loop.call_soon(callback, *args, context=None)`安排在下一次事件循环的迭代中使用args参数调用callback
-
-`loop.call_soon_threadsafe(callback, *args, context=None)`必须被用于安排来自其他线程的回调
-
-
-
-
-
-
-
-
-
-
-
-***
-
-
++ 定义/创建协程对象
++ 将协程转化为task任务
++ 定义事件循环对象容器
++ 将task任务扔进事件循环对象中触发
 
 ```python
-async def hello():
-    asyncio.sleep(1)
-    print('HelloWorld!')
+import asyncio
+
+async def hello(name):
+    print('Hello', name)
+
+coroutine = hello('World')
+loop = asyncio.get_event_loop()
+# task = asyncio.ensure_future(coroutine)  也可以实现将协程转化为task对象
+task = loop.create_task(coroutine)
+
+loop.run_until_complete(task)
+```
+
+创建task之后，task在加入事件循环loop之前是pending状态，task执行完会变成finished状态
+
+`asyncio.ensure_future(corcoutine)`和`loop.create_task(coroutine)`都可以创建一个task
+`run_until_complete`的参数是一个future对象，当传入一个协程，其内部会自动封装成一个task，task是future的子类
+
+---
+
+#### 绑定回调函数
+
+异步IO实现的原理，就是再IO高的地方挂起，等IO结束后，再继续执行，再绝大部分时候，后续代码的执行是需要依赖IO的返回值的，这时候就需要回调了
+
+两种实现回调的方式：
+
++ 一种是利用同步编程实现的回调，`task.result()`可以取得返回结果，即在任务结束之后，使用`task.result()`方法可以得到task的返回值
++ 还有一种是通过asyncio自带的**添加回调函数**功能来实现，回调的最后一个参数是future对象，通过该对象可以获取协程返回值，如果回调需要多个参数，可以通过偏函数导入(偏函数即固定某些参数的方法)
+
+```python
+import time
+import asyncio
+
+async def _sleep(x):
+    time.sleep(2)
+    return '暂停了{}秒'.format(x)
+
+def callback(future):
+    print('这里是回调函数，获取返回结果是：', future.result())
+
+coroutine = _sleep(2)
+loop = asyncio.get_event_loop()
+task = asyncio.ensure_future(coroutine)
+task.add_done_callback(callback)
+
+loop.run_until_complete(task)
+"""
+# 偏函数的用法
+def callback(t, future):
+    print('Callback:', t, future.result())
+
+task.add_done_callback(functools.partial(callback, 2))
+# 此时2会作为第一个参数传入callback并作为一个新的函数
+# 这里的task和future可以认为是一样的
+"""
+```
+
+---
+
+#### 阻塞和await
+
+使用async可以定义协程对象，使用await可以针对耗时的操作进行挂起，就像生成器里的yield一样，函数让出控制权。协程遇到await，事件循环将会挂起该协程，执行别的协程，直到其他的协程也挂起或者执行完毕，再进行下一个协程的执行。耗时操作一般是网络IO，磁盘IO等，协程的目的也是让这些IO操作异步化
+
+当遇到阻塞调用的函数的时候，使用await方法将协程的控制权让出，以便loop调用其他的协程
+
+---
+
+#### 并发和并行
+
+asyncio实现并发，需要多个协程来完成任务，每当有任务阻塞的时候就await，然后其他协程继续工作。创建多个协程的列表，然后将这些协程注册到事件循环中
+
+两种注册手段：**`asyncio.wait(tasks)`**和**`asyncio.gather(*tasks)`**
+
+```python
+import asyncio
+
+async def do_some_work(x):
+    print('Waiting:', x)
+    await asyncio.sleep(x)
+    return 'Done after {}s'.format(x)
+
+coroutine1 = do_some_work(1)
+coroutine2 = do_some_work(2)
+coroutine3 = do_some_work(4)
+tasks = [
+    asyncio.ensure_future(coroutine1),
+    asyncio.ensure_future(coroutine2),
+    asyncio.ensure_future(coroutine3)
+]
+loop = asyncio.get_event_loop()
+# asyncio.wait(tasks)也可以使用asyncio.gather(*tasks)
+# 前者接受一个task列表，后者接受一堆task
+loop.run_until_complete(asyncio.wait(tasks))
+for task in tasks:
+    print('Task ret: ', task.result())
+```
+
+---
+
+#### 协程嵌套
+
+使用async可以定义协程，协程用于耗时的IO操作，我们可以封装更多的IO操作过程，这样就实现了嵌套的协程，即一个协程中await了另外一个协程，如此连接起来
+
+```python
+import asyncio
+
+async def do_some_work(x):
+    print('Waiting: ', x)
+    await asyncio.sleep(x)
+    return 'Done after {}s'.format(x)
+
+async def main():
+    coroutine1 = do_some_work(1)
+    coroutine2 = do_some_work(2)
+    coroutine3 = do_some_work(4)
+    tasks = [
+        asyncio.ensure_future(coroutine1),
+        asyncio.ensure_future(coroutine2),
+        asyncio.ensure_future(coroutine3)
+    ]
+    # asyncio.wait(tasks)
+    dones, pendings = await asyncio.wait(tasks)
+    for task in dones:
+        print('Task ret: ', task.result())
+    # asyncio.gather(*tasks)
+    # results = await asyncio.gather(*tasks)
+    # for result in results:
+    #     print('Task ret: ', result)
+        
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+```
+
+只是把创建协程对象，转换task任务，封装成在一个协程函数里而已，外部的协程，嵌套了一个内部的协程
+
+不在main协程函数里处理结果，直接返回await的内容，那么最外层的run_until_complete将会返回main协程的结果
+
+```python
+async def main():
+    coroutine1 = do_some_work(1)
+    coroutine2 = do_some_work(2)
+    coroutine3 = do_some_work(4)
+    tasks = [
+        asyncio.ensure_future(coroutine1),
+        asyncio.ensure_future(coroutine2),
+        asyncio.ensure_future(coroutine3)
+    ]
+    return await asyncio.gather(*tasks)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(hello())
+results = loop.run_until_complete(main())
+for result in results:
+    print('Task ret: ', result)
 ```
 
-`async def` 用来定义异步函数，其内部结构有异步操作。主线程调用`asyncio.get_event_loop()`会创建***事件循环loop***，需要把异步的任务丢给这个循环loop的`run_until_complete()`方法，loop会安排协程执行。协程通过async/await语法进行声明，是编写异步应用的推荐方式
+使用asyncio.wait方式挂起协程
 
+```python
+async def main():
+    coroutine1 = do_some_work(1)
+    coroutine2 = do_some_work(2)
+    coroutine3 = do_some_work(4)
+    tasks = [
+        asyncio.ensure_future(coroutine1),
+        asyncio.ensure_future(coroutine2),
+        asyncio.ensure_future(coroutine3)
+    ]
+    return await asyncio.wait(tasks)
 
+loop = asyncio.get_event_loop()
+done, pending = loop.run_until_complete(main())
+for task in done:
+    print('Task ret: ', task.result())
+```
 
-真正运行一个协程，asyncio提供了**两种主要机制**：
+也可以使用asyncio的as_completed方法
 
-1. `asyncio.run()`用来运行最高层级的入口点`main()`函数
+```python
+async def main():
+    coroutine1 = do_some_work(1)
+    coroutine2 = do_some_work(2)
+    coroutine3 = do_some_work(4)
+    tasks = [
+        asyncio.ensure_future(coroutine1),
+        asyncio.ensure_future(coroutine2),
+        asyncio.ensure_future(coroutine3)
+    ]
+    # 会一个一个打印出来，第1秒，第2秒，第4秒
+    for task in asyncio.as_completed(tasks):
+        result = await task
+        print('Task ret: {}'.format(result))
+    # 不太清楚as_completed(tasks)怎么用的
 
-   ```python
-   import asyncio
-   import time
-   
-   async def say_after(delay, what):
-       await asyncio.sleep(delay)
-       print(what)
-       
-   async def main():
-       print(f"started at {time.strftime('%X')}")
-       await say_after(1, 'hello')
-       await say_after(2, 'world')
-       print(f"finished at {time.strftime('%X')}")
-   
-   asyncio.run(main())
-   ```
+loop = asyncio.get_event_loop()
+done = loop.run_until_complete(main())
+```
 
-   输出结果
+协程的调用和组合十分灵活，尤其是对于结果的处理，如何返回，如何挂起，需要逐渐积累经验和前瞻的设计
 
-   ```
-   started at 19:38:27
-   hello
-   world
-   finished at 19:38:30
-   ```
+---
 
-2. `asyncio.create_task()`函数来并发运行作为asyncio任务的多个协程
+#### 协程停止
 
-   ```python
-   async def main():
-       task1 = asyncio.create_task(say_after(1, 'hello'))
-       task2 = asyncio.create_task(say_after(2, 'world'))
-       print(f"started at {time.strftime('%X')}")
-       await task1
-       await task2
-       print(f"finished at {time.strftime('%X')}")
-   ```
+future的状态
+**Pending**、**Running**、**Done**、**Cancelled**
 
-   ```
-   started at 19:45:22
-   hello
-   world
-   finished at 19:45:24
-   ```
-
-
-
-如果一个对象可以在await语句中使用，那么他就是**可等待对象**
-可等待对象主要有三种类型：**协程**、**任务**、**Future**
-
-***协程：***
-协程函数，定义形式为`async def`的函数
-协程对象，调用*协程函数*所返回的对象
-协程对象必须被`await`
-asyncio也支持旧式的**基于生成器**的协程
+创建future的时候，task为Pending，事件循环调用执行的时候当然是running，调用完就是Done。如果需要停止事件循环，就需要先把task取消。可以使用`asyncio.Task`获取事件循环的task
 
 ```python
 import asyncio
 
-async def nested():
-    return 42
+async def do_some_work(x):
+    print('Waiting: ', x)
+    await asyncio.sleep(x)
+    return 'Done after {}s'.format(x)
 
-async def main():
-    # Nothing happens if we just call "nested()".
-    # A coroutine object is created but bot awaited,
-    # so it *won't run at all*.
-    nested()
-    
-    # Let's do it differently now and await it:
-    print (await nested())  # will pritn "42".
-
-asyncio.run(main())
+coroutine1 = do_some_work(1)
+coroutine2 = do_some_work(2)
+coroutine3 = do_some_work(4)
+tasks = [
+    asyncio.ensure_future(coroutine1),
+    asyncio.ensure_future(coroutine2),
+    asyncio.ensure_future(coroutine3)
+]
+loop = asyncio.get_event_loop()
+try:
+    loop.run_until_complete(asyncio.wait(tasks))
+except KeyboardInterrupt as e:
+    print(asyncio.Task.all_tasks())
+    for task in asyncio.Task.all_tasks():
+        # True表示cancel成功
+        print(task.cancel())
+    loop.stop()
+    # loop.stop()之后还需要再次开启事件循环，最后再close，不然会抛出异常
+    loop.run_forever()
+finally:
+    loop.close()
 ```
 
-
-
-***任务：***
-任务被用来设置日程以便并发执行协程
-一个协程通过`asyncio.create_task()`等函数被打包为一个任务，该协程将自动排入日程准备立即运行
+循环task，逐个cancel是一种方案，当task的列表封装再main函数中，main函数外进行事件循环的调用，这个时候，main相当于最外层的一个task，那么处理包装的main函数即可
 
 ```python
 import asyncio
 
-async def nested():
-    return 42
+async def do_some_work(x):
+    print('Waiting: ', x)
+    await asyncio.sleep(x)
+    return 'Done after {}s'.format(x)
 
 async def main():
-    # Schedule nested() to run soon concurrently
-    # with "main()".
-    task = asyncio.create_task(nested())
-    
-    # "task" can now be used to cancel "nested()", or
-    # can simply be awaited to wait until it is complete:
-    await task
-    
-asyncio.run(main())
+    coroutine1 = do_some_work(1)
+	coroutine2 = do_some_work(2)
+	coroutine3 = do_some_work(4)
+	tasks = [
+    	asyncio.ensure_future(coroutine1),
+	    asyncio.ensure_future(coroutine2),
+    	asyncio.ensure_future(coroutine3)
+	]
+    done, pending = await asyncio.wait(tasks)
+    for task in done:
+        print('Task ret: ', task.result())
+
+loop = asyncio.get_event_loop()
+task = asyncio.ensure_future(main())
+try:
+    loop.run_until_complete(task)
+except KeyboardInterrupt as e:
+    print(asyncio.Task.all_tasks())
+    print(asyncio.gather(*asyncio.Task.all_tasks()).cancel())
+    loop.stop()
+    loop.run_forever()  # 有疑问，这里应该会一直的等待下去，不会去执行close
+finally:
+    loop.close()
 ```
 
+---
 
+#### 不同线程的事件循环
 
-***Future对象：***（没懂）
-是一种特殊的低层级可等待对象，表示一个异步操作的最终结果
-当一个Future对象被等待，这意味着协程将保持等待直到给Future对象在其他地方操作完毕
-在asyncio中需要Future对象以便允许通过async/await使用基于回调的代码
-通常情况下没有必要再应用层级的代码中创建Future对象
-Future对象有时候会由库和某些asyncio API暴露给用户，用作可等待对象
-
-```python
-async def main():
-    await function_that_returns_a_future_obbject()
-    
-    # this is also valid:
-    await asyncio.gather(
-        function_that_returns_a_future_object(),
-        some_python_coroutine()
-    )
-```
-
-一个很好的返回对象的低层级函数的示例是`loop.run_in_executor()`
-
-
-
-#### 运行asyncio程序
-
-```python
-asyncio.run(coro, *, debug=False)
-```
-
-此函数运行传入的协程，负责管理asyncio事件循环并完结异步生成器
-**当还有其他asyncio事件循环在同一线程中运行时，此函数不能被调用（没懂）**
-如果debug为True，事件循环将以调试模式运行
-
-
-
-#### 创建任务
-
-```python
-# In Python 3.7+
-task = asyncio.create_task(coro())
-# This works in all Python versions but is less readable
-task = asyncio.ensure_future(coro())
-```
-
-将coro协程打包为一个Task排入日程准备执行，返回Task对象
-该任务会在get_running_loop()返回的循环中执行，如果当前线程没有在运行的循环则会引发RuntimeError
-
-
-
-#### 休眠
+很多时候，我们的事件循环用于注册协程，而有的协程需要动态的添加到事件循环中，一个简单的方式就是使用多线程。当前线程创建一个事件循环，然后再新建一个线程，再新线程中启动事件循环，当前线程不会被block
 
 ```python
 import asyncio
-import datetime
+from threading import Thread
 
-async def display_data():
-    loop = asyncio.get_running_loop()
-    end_time = loop.time() + 5.0
-    while True:
-        print(datetime.datetime.now())
-        if (loop.time() + 1.0) >= end_time:
-            break
-        await asyncio.sleep(1)
-
-asyncio.run(display_date())
-
-# asyncio.sleep(delay, result=None, *, loop=None)
-```
-
-阻塞delay指定的秒数
-制定了result则在协程完成时将其返回给调用者
-sleep()总会挂起当前任务，以允许其他任务运行，loop参数已弃用
-
-#### 并发运行任务
-
-```python
-import asyncio
-
-async def factorial(name, number):
-    f = 1
-    for i in range(2, number + 1):
-        print(f"Task {name}: Compute factorial({i})...")
-        await asyncio.sleep(1)
-        f *= i
-    print(f"Task {name}: factorial({number}) = {f}")
-
-async def main():
-    # Schedule three calls *concurrently*:
-    await asyncio.gather(
-        factorial("A", 2),
-        factorial("B", 3),
-        factorial("C", 4),
-    )
+def start_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
     
-asyncio.run(main())
+async def do_some_work(x):
+    print('Waiting {}'.format(x))
+    await asyncio.sleep(x)
+    print('Done after {}s'.format(x))
 
-# asyncio.gather(*aws, loop=None, return_exceptions=False) 
+def more_work(x):
+    print('More work {}'.format(x))
+    time.sleep(x)
+    print('Finished more work {}'.format(x))
+    
+new_loop = asyncio.new_event_loop()
+t = Thread(target=start_loop, args=(new_loop,))
+t.start()
+
+# new_loop.call_soon_threadsafe(more_work, 6)
+# new_loop.call_soon_threadsafe(more_work, 3)
+asyncio.run_coroutine_threadsafe(do_some_work(6), new_loop)
+asyncio.run_coroutine_threadsafe(do_some_work(4), new_loop)
 ```
 
-并发运行aws序列中的可等待对象
-如果aws中的某个可等待对象为协程，它将自动作为一个任务加入日程
-如果所有可等待对象都成功完成，结果将是一个由所有返回值聚和而成的列表，结果值的顺序和aws中可等待对象的顺序一致
-如果return_exceptions为False（默认），所引发的首个异常会立即传播给等待gather()的任务，aws序列中的其他可等待对象不会被取消并将继续运行；为True，异常会和成功的结果一样处理，并聚合至结果列表
-如果gather()被取消，所有被提交(尚未完成)的可等待对象也会被取消
+`call_soon_threadsafe()`方法添加非协程函数
+`run_coroutine_threadsafe()`方法添加协程函数
 
+---
 
+#### gather与wait
 
-#### 屏蔽取消操作
+把多个协程注册进一个事件循环中的两种方法：
+
++ `asyncio.wait(tasks)`这里的`task`必须是一个list，这个list存放多个task，可以使用`asyncio.ensure_future()`转化为task对象，也可以不转，直接传入协程对象的list
+
++ `asyncio.gather(*tasks)`这里的`*`不能省略，可以接收list，`gather()`第一个参数是`*coros_or_futures`，叫***非命名键值可变长参数列表***，可以集合所有没有命名的变量
+
+  ```python
+  loop = asyncio.get_event_loop()
+  loop.run_until_complete(asyncio.gather(
+      do_some_work(1),
+      do_some_work(2),
+      do_some_work(3),
+  ))
+  # 或者
+  loop = asyncio.get_event_loop()
+  group1 = asyncio.gather(*[do_some_work(x) for x in range(1, 3)])
+  group2 = asyncio.gather(*[do_some_work(x) for x in range(1, 5)])
+  group3 = asyncio.gather(*[do_some_work(x) for x in range(1, 7)])
+  loop.run_until_complete(asyncio.gather(group1, group2, group3))
+  ```
+
+两种方法返回结果也不一样
+`asyncio.wait()`返回`dones`和`pendings`；`asyncio.gather()`会把值直接返回
+
+此外`asyncio.wait()`还有**控制功能**：
 
 ```python
-asyncio.shield(aw, *, loop=None)
+...
+# FIRST_COMPLETED:第一个任务完成返回
+# FIRST_EXCEPTION:产生第一个异常返回
+# ALL_COMPLETED:默认选项，所有任务完成返回
+dones, pendings = loop.run_until_complete(
+    asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED))
+# asyncio.wait(tasks, timeout=1)  # 运行1秒后返回
 ```
 
-保护一个可等待对象防止其被取消
-如果aw是一个协程，将自动作为任务加入日程
+---
+
+#### master-worker主从模式
+
+对于并发任务，通常是用**生成消费**模型，对队列的处理可以使用类似master-worker的方式，master主要用户获取队列的msg，worker用户处理消息
+
+---
+
+#### 工具函数
+
+`asyncio.sleep()`该函数为asyncio自带的工具函数，可以模拟IO阻塞，返回一个协程对象
 
 
 
-#### 超时
+***yield和async使用注意***
 
-```python
-asyncio.wait_for(aw, timeout, *, loop=None)
-```
-
-等待aw可等待对象完成，指定timeout秒数后超时
-timeout为None，则等待直到完成
-超时时，任务将取消并引发`asyncio.TimeoutError`
-要避免任务取消，可以加上`shield()`
-loop参数已弃用
-
-
-
-#### 基于生成器的协程
-
-对基于生成器的协程的支持***已弃用***，并计划在Python3.10中移除。基于生成器的协程是async/await语法的前身，它们使用`yield from`语句创建的Python生成器可以等待Future和其他协程，`@asyncio.coroutine`装饰基于生成器的协程
-
-## aiohttp
-
-基于asyncio的http框架
++ 不能再生成器中使用await，也不能再async定义的协程中使用yield
++ `yield from`后可以接**可迭代对象**，**生成器**，**迭代器**，也可以接**future对象**/**协程对象**，但是await后面必须接**future对象**/**协程对象**
