@@ -598,6 +598,444 @@ JavaScript最常用于图片操作、表单验证以及内容动态更新
 
 #### HTML头部元素
 
+`<title>`标题定义文档的标题
+`<base target="_blank" />`使得页面中的所有标签在新窗口中打开
 
+`<meta name="author" content="xx.com.cn">`定义了创作者
+`<meta name="generator" content="Dreamweaver 8.0en">`定义了编辑软件
+也可以定义关键词
 
-#### 
+`<meta http-equiv="Refresh" content="5;url=http://www.xx.com.cn" />`把用户重定向到新的网址
+
+Head元素是所有头部元素的容器，`<head>`内的元素可包含脚本，指示浏览器在何处可以找到样式表，提供元信息，等
+
+---
+
+#### HTML `<title>`元素
+
+title元素在所有HTML/XHTML文档中都是必须的
+
++ title元素定义浏览器工具栏中的标题
++ 提供页面被添加到收藏夹时显示的标题
++ 显示在搜索引擎结果中的页面标题
+
+#### HTML `<base>` 元素
+
+base标签为页面上的所有链接规定默认地址，页面中的所有链接如果使用了相对路径，那么就会以base标签中规定的地址作为基础地址，如果要使用base标签的href属性，那么这个路径必须是以`/`结尾的，否则这个路径是无效果的
+或默认目标target
+
+```html
+<head>
+    <base href="http://www.baidu.com" />
+    <base target="_blank" />
+</head>
+```
+
+#### HTML`<link>`元素
+
+link标签定义文档与外部资源之间的关系，最常用于连接样式表
+
+```html
+<head>
+    <link rel="stylesheet" type="text/css" href="mystyle.css" />
+</head>
+```
+
+#### HTML`<style>`元素
+
+用于为HTML文档定义样式信息
+
+#### HTML `<meta>`元素
+
+元数据metadata是关于数据的信息，提供关于HTML文档的元数据。元数据不会显示在页面上，但是对于机器是可读的
+
+典型的情况是，meta元素被用于规定页面的描述、关键词、文档的作者、最后修改时间以及其他元数据等，元数据可用于浏览器（如何显示内容或重新加载页面），搜索引擎（关键词），或其他web服务
+
+一些搜索引擎会利用meta元素的name和content属性来索引您的页面，name和content属性的作用是描述页面的内容
+
+#### HTML `<script>`元素
+
+---
+
+# HTML字符实体
+
+HTML中的预留字符(如<和>)必须被替换为**字符实体**character entities
+
+字符实体`&entity_name;`或者`&#entity_number;`
+如需要显示小于号，必须要这样写：`&lt;`或`&#60;`
+
+浏览器不一定支持所有的实体名称，对实体数字的支持却很好
+
+不间断空格(non-breaking space)，(`&nbsp;`)
+
+浏览器总是会截短HTML页面中的空格，如需要在页面中增加空格的数量，需要使用`&nbsp;`字符实体
+
+---
+
+# HTML URL
+
+HTML URL，统一资源定位符，Uniform Resource Locator，用于定位万维网上的文档或其他数据
+
+`scheme://host.domain:port/path/filename`
+
+host：定义域主机，http的默认主机是www
+domain：定义因特网域名
+path：定义服务器上的路径（如果省略，则文档必须位于网站的根目录中）
+
+当scheme为file时，表示本地计算机上的文件
+
+---
+
+#### HTML URL字符编码
+
+URL编码会将字符转换为可通过因特网传输的格式，URL只能使用ASCII字符集来通过因特网进行发送
+
+URL常常会含有ASCII集合之外的字符，URL必须转换为有效的ASCII格式，使用%其后跟随两位十六进制数来替换非ASCII字符，URL不能包含空格，使用+来替换空格，+号为%2B
+
+---
+
+#### HTTP Web Server
+
+---
+
+#### HTML颜色
+
+颜色由红、绿、蓝混合而成，`#000000`=`rgb(0,0,0)`
+
+大多数的浏览器都支持颜色名集合。仅有16种颜色名被W3C的HTML4.0标准所支持。如果需要使用其他颜色，需要使用十六进制的颜色值。
+
+#### Web安全色
+
+数年以前，大多数计算机仅支持256种颜色，一系列216种Web安全色作为Web标准被建议使用，其中的原因是，微软和Mac操作系统使用了40种不同的保留的固定系统颜色（双方大约各使用20种）
+
+216跨平台色
+
+最初，216跨平台web安全色被用来确保：当计算机使用256色调色板时，所有的计算机能够正确地显示所有的颜色
+
+---
+
+#### HTML颜色名
+
+16种被HTML4.0标准支持的颜色名：
+aqua、black、blue、fuchsia、gray、green、lime、maroon、navy、olive、purple、red、silver、teal、white、yellow
+
+---
+
+# HTML `<!DOCTYPE>`
+
+`<!DOCTYPE>`声明帮助浏览器正确地显示网页，为浏览器提供一项信息(声明)，即HTML是用什么版本编写的
+
+```html
+<!-- HTML5 -->
+<!DOCTYPE html>
+<!-- HTML4.01 -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- XHTML1.0 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+```
+
+---
+
+# HTML表单
+
+HTML表单用于搜集不同类型的用户输入
+
+`<form>`元素定义HTML表单，HTML表单包含**表单元素**，包括不同类型的input元素、复选框、单选按钮、提交按钮等
+
+```html
+<form action="action_page.php" method="GET">
+    First name:<br/>
+    <input type="text" name="firstname">
+    <br/>
+    Last name:<br/>
+    <input type="text" name="lastname">
+    <br/>
+    <input type="radio" name="sex" value="male" checked>Male
+    <br/>
+    <input type="radio" name="sex" value="female">Female
+    <br/>
+    <input type="submit" value="Submit">
+</form>
+```
+
+#### `<input>`元素
+
+最重要的表单元素
+
++ 文本输入`<input type="text">`用于**文本输入**的单行输入字段，文本字段的默认宽度是20个字符
++ 单选按钮输入`<input type="radio">`定义单选按钮，允许用户在有限数量的选项中选择其中之一
++ 提交按钮`<input type="submit">`定义用于向表单处理程序form-handler提交表单的按钮，表单处理程序在表单form的action属性中指定
+
+#### Action属性
+
+action属性定义在提交表单时执行的动作，如果省略action属性，则action会被设置为当前页面
+
+#### Method属性
+
+method属性规定在提交表单时所用的HTTP方法GET或POST。GET为默认方法
+
+当表单提交是被动的，比如搜索引擎查询，并且没有敏感信息，使用GET，表单数据在页面地址栏中是可见的
+
+GET最适合少量数据的提交，浏览器会设定容量限制
+
+#### Name属性
+
+如果要正确地被提交，每个输入字段必须设置一个name属性
+
+用`<fieldset>`组合表单中的相关数据，`<legend>`元素为`<fieldset>`元素定义标题
+
+```html
+<form action="action_page.php">
+    <fieldset>
+        <legend>Personal information</legend>
+        First name:<br>
+        <input type="text" name="firstname" value="Mickey">
+        <br>
+        Last name:<br>
+        <input type="text" name="lastname" value="Mouse">
+        <br>
+        <input type="submit" value="Submit">
+    </fieldset>
+</form>
+```
+
+#### HTML Form属性
+
+| 属性           | 描述                                                 |
+| -------------- | ---------------------------------------------------- |
+| accept-charset | 规定在被提交表单中使用的字符集(默认：页面字符集)     |
+| action         | 规定向何处提交表单的地址URL(提交页面)                |
+| autocomplete   | 规定浏览器应该自动完成表单(默认开启)                 |
+| enctype        | 规定被提交数据的编码(默认：url-encoded)              |
+| method         | 规定在提交表单时所用的HTTP方法(默认：GET)            |
+| name           | 规定识别表单的名称(对于DOM使用：document.forms.name) |
+| novalidate     | 规定浏览器不验证表单                                 |
+| target         | 规定action属性中地址的目标(默认：_self)              |
+
+#### HTML表单元素
+
++ `<input>`元素
+
++ `<select>`元素定义下拉列表，`<option>`元素定义待选择的选项，列表通常会把首个选项显示为被选选项，能够通过添加selected属性来定义预定义选项
+
+  ```html
+  <select name="cars">
+      <option value="volvo">Volvo</option>
+      <option value="saab">Saab</option>
+      <option value="fiat" selected>Fiat</option>
+  </select>
+  ```
+
++ `<textarea>`元素定义多行输入字段(**文本域**)
+
+  ```html
+  <textarea name="message" rows="10" cols="30">
+      The cat was playing in the garden.
+  </textarea>
+  ```
+
++ `<button>`元素定义可点击的**按钮**
+
+  ```html
+  <button type="button" onclick="alert('Hello World!')">Click Me!</button>
+  ```
+
+#### HTML5`<datalist>`元素
+
+`<datalist>`元素为`<input>`元素规定预定义选项列表，用户会在它们输入数据时看到预定义选项的下拉列表
+
+```html
+<form action="action_page.php">
+    <input list="browsers">
+    <datalist id="browsers">
+        <option value="Internet Explorer">
+        <option value="Firefox">
+        <option value="Chrome">
+        <option value="Opera">
+        <option value="Safari">
+    </datalist>
+</form>
+```
+
+#### HTML输入类型
+
+`<input type="text">`定义供文本输入的单行输入字段
+
+`<input type="password">`定义密码字段，password字段中的字符会被做掩码处理(显示为星号或者实心圆)
+
+`<input type="submit">`定义**提交**表单数据至**表单处理程序**的**按钮**
+
+如果省略了提交按钮的value属性，那么该按钮将获得默认文本，即按钮上会显示"提交"两个字
+
+---
+
+#### Input Type: radio
+
+#### Input Type: checkbox
+
+`<input type="checkbox">`定义复选框
+
+```html
+<form>
+    <input type="checkbox" name="vehicle" value="Bike">I have a bike
+    <br>
+    <input type="checkbox" name="vehicle" value="Car">I have a car
+</form>
+```
+
+HTML5增加了多个新的输入类型，老式Web浏览器不支持的输入类型，会被视为输入类型text
+
+#### 输入类型：number
+
+`<input type="number">`用于应该包含数字值的输入字段
+
+```html
+<form>
+    Quantity (between 1 and 5):
+    <input type="number" name="quantity" min="1" max="5">
+</form>
+```
+
+#### 输入限制
+
+input标签的value为输入字段的默认值
+
+输入类型：date：`<input type="date">`用于应该包含日期的输入字段
+
+输入类型：color：`<input type="color">`用于应该包含颜色的输入字段
+
+输入类型：range：`<input type="range">`用于应该包含一定范围内的值的输入字段
+
+输入类型：month：`<input type="month">`允许用户选择月份和年份
+
+输入类型：week：`<input type="week">`允许用户选择周和年
+
+输入类型：time：`<input type="time">`允许用户选择时间(无时区)
+
+输入类型：datetime/datetime-local：`<input type="datetime"><input type="datetime-local">`允许用户选择日期和时间(有时区/无时区)
+
+输入类型：email：`<input type="email">`用于应该包含电子邮件地址的输入字段
+
+输入类型：search：`<input type="search">`用于搜索字段(搜索字段的表现类似常规文本字段)
+
+输入类型：tel：`<input type="tel">`用于应该包含电话号码的输入字段
+
+输入字段：url：`<input type="url">`用于应该包含URL地址的输入字段
+
+#### HTML Input属性
+
+**value属性**规定输入字段的初始值
+
+**readonly属性**规定输入字段为只读(不能修改)。readonly属性不需要值，等同于readonly="readonly"
+
+```html
+<form action="">
+    <input type="text" name="firstname" value="John" readonly>
+</form>
+```
+
+**disabled属性**规定输入字段是禁用的。被禁用的元素是不可用和不可点击的，被禁用的元素不会被提交，disabled属性不需要值，等同于disabled="disabled"
+
+**size属性**规定输入字段的尺寸(以字符计)，即显示的框的长度
+
+**maxlength属性**规定输入字段允许的最大长度
+
+---
+
+#### HTML5的input和form属性
+
+autocomplete属性规定表单或输入字段是否应该自动完成，on和off，当自动完成开启，浏览器会基于用户之前的输入值自动填写值，适用于form和input类型
+
+novalidate属性，用于form属性。如果设置，则novalidate规定在提交表单时不对表单数据进行验证
+
+autofocus属性是布尔属性，如果设置，则规定当前页面加载时input元素应该自动获得焦点
+
+form属性规定input元素所属的一个或多个表单，如需引用一个以上的表单，请使用空格分隔的表单id列表
+
+```html
+<form action="action_page.php" id="form1">
+    First name: <input type="text" name="fname"><br>
+    <input type="submit" value="Submit">
+</form>
+
+Last name: <input type="text" name="lname" form="form1">
+```
+
+formaction属性规定当提交表单时处理该输入控件的文件的URL，formaction属性覆盖form的action属性，适用于type="submit"以及type="image"
+
+formenctype属性规定当把表单数据form-data提交至服务器时如何对其进行编码，仅针对method="post"的表单，覆盖form的enctype属性，适用于type="submit"以及type="image"
+
+formmethod属性定义用以向action URL发送表单数据form-data的HTTP方法，覆盖form的method属性，适用于type="submit"以及type="image"
+
+formnovalidate属性是布尔属性，如果设置，则规定在提交表单时不对input元素进行验证，覆盖form的novalidate属性，可用于type="submit"
+
+formtarget属性规定的名称或关键词指示提交表单后再何处显示接受到的响应，覆盖form的target属性，适用于type="submit"以及type="image"
+
+height和width属性规定input元素的高度和宽度，仅用于`<input type="image">`。请始终规定图像的尺寸，如果浏览器不清楚图像尺寸，则页面会在图像加载时闪烁
+
+list属性引用的`<datalist>`元素中包含了`<input>`元素的预定义选项
+
+```html
+<input list="browsers">
+<datalist id="browsers">
+    <option value="Internet Explorer">
+    <option value="Firefox">
+    <option value="Chrome">
+    <option value="Opera">
+</datalist>
+```
+
+min和max属性规定input元素的最小值和最大值
+
+multiple属性是布尔属性，如果设置，则规定允许用户在input元素中插入一个以上的值，使用于以下输入类型：email和file
+
+pattern属性规定用于检查input元素值的正则表达式，使用全局的title属性对模式进行描述以帮助用户
+`<input type="text" name="country_code" pattern="[A-Za-z]{3}" title="Three letter country code">`鼠标移动到input上会显示title内容
+
+placeholder属性规定用以描述输入字段预期值的提示(样本值或有关格式的简短描述)，该提示会在用户输入值之前显示在输入字段中
+
+required属性是布尔属性，如果设置，则规定在提交表单之前必须填写输入字段
+
+step属性规定input元素的合法数字间隔，step属性可于max和min属性一起使用，来创建合法值的范围
+
+---
+
+# HTML5简介
+
+HTML5是最新的HTML标准，是专门为承载丰富的web内容而设计的，并且无需额外插件，拥有新的语义、图形、以及多媒体元素，提供的新元素和新的API简化了web应用程序的搭建
+
+HTML5是跨平台的，被设计为在不同类型的硬件(PC、平板、手机、电视机等等)之上运行
+
+新的属性语法：
+Empty `<input type="text" value="John Doe" disabled>`
+Unquoted `<input type="text" value=John Doe>`
+Double-quoted `<input type="text" value="John Doe">`
+Single-quoted `<input type="text" value='John Doe'>`
+
+根据对属性的需求，可能会用到所有4种语法
+
+---
+
+HTML5新特性：强大的图像支持（藉由`<canvas>`和`<svg>`）；强大的多媒体支持（藉由`<video>`和`<audio>`）；强大的新API，**比如用本地存储取代cookie（不懂）**
+
+---
+
+所有浏览器，不论新旧，都会自动把未识别元素当作行内元素来处理
+
+---
+
+`<canvas>`定义使用JavaScript的图像绘制
+
+`<svg>`定义使用SVG的图像绘制
+
+---
+
+#### shiv：为Internet Explorer支持而添加的shiv
+
+```html
+<!--[if lt IE 9]>
+	<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif] -->
+```
+
+请始终定义图像尺寸，这样做会减少闪烁，因为浏览器会在图像加载之前为图像预留空间
