@@ -2,6 +2,25 @@
 
 ---
 
+```html
+<meta http-equiv="参数" content="参数变量值">
+```
+
+相当于http的文件头作用，可以向浏览器传回一些有用的信息，以帮助正确和精确地显示网页内容
+
+主要有以下参数
+
++ Expires（期限）
++ Pragma（cache模式）
++ Refresh（刷新）
++ Set-Cookie（cookie设定）
++ Window-target（显示窗口的设定）
++ content-Type（显示字符集的设定）
++ content-Language（显示语言的设定）
++ Cache-Control（指定请求和响应遵循的缓存机制）
+
+---
+
 #### HTML Hyper Text Markup Language超文本标记语言
 
 #### XHTML eXtensible Hyper Text Markup Language可扩展超文本标记语言
