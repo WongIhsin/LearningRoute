@@ -2,6 +2,39 @@
 
 ---
 
+#### HTML5视频
+
+视频格式：
+Ogg：带有Theora视频编码和Vorbis音频编码的Ogg文件
+MPEG4：带有H.264视频编码和AAC音频编码的MPEG4文件
+WebM：带有VP8视频编码和Vorbis音频编码的WebM文件
+
+`<video src="movie.ogg" controls="controls">`的controls属性供添加播放、暂停和音量控件，不设置的话将会没有这些控件
+
+**video元素允许多个source元素，可以链接不同的视频文件，浏览器将使用第一个可识别的格式**
+
+---
+
+#### HTML5表单元素的keygen元素
+
+keygen元素的作用是提供一种验证用户的可靠方法
+
+keygen元素是密钥对生成器key-pair generator，当提交表单时，生成两个键，一个是私钥，一个是公钥
+
+私钥private key存储于客户端，公钥public key则发送到服务器，公钥可用于之后验证用户的客户端证书client certificate
+
+目前支持度比较糟糕
+
+#### HTML5的output元素
+
+```html
+<output id="result" onforminput="resCalc()"></output>
+```
+
+实现简单计算输出(不是很清楚)
+
+---
+
 #### HTML5 Canvas
 
 用于在网页上绘制图形，canvas元素使用JavaScript在网页上绘制图像
