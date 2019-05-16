@@ -987,3 +987,46 @@ Dimension属性允许你控制元素的高度和宽度。同样，允许你增�
 #### CSS分类Classification
 
 规定如何以及在何处显示元素
+
+---
+
+#### CSS图像透明度
+
+```css
+img {
+    opacity: 0.4; /*IE9*/
+    filter: alpha(opacity=40) /*IE8及更早版本*/
+}
+```
+
+---
+
+#### 媒体类型
+
+某些CSS属性仅仅被设计为针对某些媒介，voice-family属性被设计为针对听觉用户终端，其他的属性可被用于不同的媒介。例如font-size属性可被用于显示器以及印刷媒介，但是也许会带有不同的值，显示器上面的显示文档通常会需要比纸质媒介更大的字号，同时在显示器上，sans-serif字体更容易阅读，而在纸质媒介上，serif字体更易阅读
+
+#### `@media`规则
+
+`@media`规则使你有能力在相同的样式表中，使用不同的样式规则来针对不同的媒介
+
+```html
+<html>
+    <head>
+        <style>
+            @media screen {
+                p.test {font-family: verdana, sans-serif; font-size: 14px}
+            }
+            @media print {
+                p.test {font-family: times, serif; font-size: 10px}
+            }
+            @media screen, print {
+                p.test {font-weight: bold}
+            }
+        </style>
+    </head>
+    <body>
+        ...
+    </body>
+</html>
+```
+
