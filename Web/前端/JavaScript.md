@@ -406,7 +406,10 @@ a;//{name:'Bob', age:88, city:'Beijing'}
 underscore提供了把对象包装成能进行链式调用的方法，就是`chain()`函数
 
 ```javascript
-var r = _.chain([1, 4, 9, 16, 25]).map(Math.sqrt).filter(x => x%2 === 1).value();
+var r = _.chain([1, 4, 9, 16, 25])
+		 .map(Math.sqrt)
+		 .filter(x => x % 2 === 1)
+		 .value();//因为每一步返回的都是包装对象，所以最后一步的结果需要调用value()获得最终结果
 console.log(r); // [1, 3, 5]
 ```
 
