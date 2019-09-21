@@ -44,11 +44,16 @@ for step in range(201):
         print(setp, sess.run(Weights), sess.run(biases))
 ```
 
+tf定义了变量一定要使用如下初始化
 
+```python
+init = tf.initialize_all_vaiables()
+sess.run(init)
+```
 
+tensorflow的大部分情况下只能处理float32形式的数据
 
-
-
+使用placeholder需要用sess.run(xxx, feed_dict={...})
 
 
 
